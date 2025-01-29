@@ -10,10 +10,10 @@ from model.utils import fix_len_compatibility
 
 
 # data parameters
-train_filelist_path = 'resources/filelists/ljspeech/train.txt'
-valid_filelist_path = 'resources/filelists/ljspeech/valid.txt'
-test_filelist_path = 'resources/filelists/ljspeech/test.txt'
-cmudict_path = 'resources/cmu_dictionary'
+train_filelist_path = 'data/annotations.csv'
+valid_filelist_path = 'data/annotations.csv'
+test_filelist_path = 'data/annotations.csv'
+cmudict_path = 'speechBackbones/GradTTS/resources/cmu_dictionary'
 add_blank = True
 n_feats = 80
 n_spks = 1  # 247 for Libri-TTS filelist and 1 for LJSpeech

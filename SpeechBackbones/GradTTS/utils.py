@@ -24,6 +24,13 @@ def intersperse(lst, item):
 def parse_filelist(filelist_path, split_char="|"):
     with open(filelist_path, encoding='utf-8') as f:
         filepaths_and_text = [line.strip().split(split_char) for line in f]
+    
+    # Ensure each filepath has a .wav extension and add 'resources/filelists/raw/' at the beginning
+    for item in filepaths_and_text:
+        if not item[0].endswith('.wav'):
+            item[0] += '.wav'
+        item[0] = os.path.join('C:/Users/rlina/Documents/Block2/Unsupervised Deep Learning/PracticalProjectSpeechSynthesis/data/raw/', item[0])
+    
     return filepaths_and_text
 
 

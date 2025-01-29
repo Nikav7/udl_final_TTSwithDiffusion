@@ -57,6 +57,8 @@ pe_scale = params.pe_scale
 
 
 if __name__ == "__main__":
+    print(f"Using GPU: {torch.cuda.is_available()}")  # Check if GPU is available
+
     torch.manual_seed(random_seed)
     np.random.seed(random_seed)
 
