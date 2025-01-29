@@ -25,7 +25,7 @@ from SpeechBackbones.GradTTS.hifigan.models import Generator as HiFiGAN
 # Paths to checkpoints
 # Define the base path for your project
 BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ''))
-GRAD_TTS_CKPT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/grad-tts.pt")
+GRAD_TTS_CKPT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/grad_50.pt")
 GRAD_TTS_CKPT_LIBRI = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/grad-tts-libri-tts.pt")
 HIFIGAN_CKPT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/hifigan.pt")
 HIFIGAN_CONFIG = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/hifigan-config.json")
