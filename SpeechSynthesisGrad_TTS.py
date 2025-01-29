@@ -110,6 +110,10 @@ def text_to_speech(text = "Random text wow ok."):
 if __name__ == "__main__":
     print(f"Using GPU: {torch.cuda.is_available()}")  # Check if GPU is available
 
-    text = "Recently, denoising diffusion probabilistic models and generative score matching have shown high potential in modelling complex data distributions while stochastic calculus has provided a unified point of view on these techniques allowing for flexible inference schemes. "
+    text = "Here are the match lineups for the Colombia Haiti match."
+
+    #"questa è la voce che risulta dal finetuning di GradTTS con la voce di Alessandro Barbero, che ne pensi?"
+    
+    #"Here are the match lineups for the Colombia Haiti match."
     audio = text_to_speech(text)
     #print(f"Audio saved to output.wav")
