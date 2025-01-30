@@ -5,6 +5,7 @@ import scipy.signal
 import scipy.fftpack
 import matplotlib.pyplot as plt
 import soundfile as sf
+import re
 
 def calculate_snr(signal):
     signal_power = np.mean(signal ** 2)
@@ -82,5 +83,36 @@ def analyze_audio(original_file, generated_file):
     
     plot_waveform_and_spectrogram(original, generated, sr)
 
-# Example usage:
-analyze_audio("originalITA.wav", "generatedITA.wav")
+
+def plot_train_log(file_path):
+    epochs = []
+    duration_loss = []
+    prior_loss = []
+    diffusion_loss = []
+    
+    with open(file_path, 'r') as file:
+        for line in file:
+            match = re.match(r"Epoch (\d+): duration loss = ([\d.]+) \| prior loss = ([\d.]+) \| diffusion loss = ([\d.]+)", line)
+            if match:
+                epochs.append(int(match.group(1)))
+                duration_loss.append(float(match.group(2)))
+                prior_loss.append(float(match.group(3)))
+                diffusion_loss.append(float(match.group(4)))
+    
+    plt.figure(figsize=(10, 5))
+    plt.plot(epochs, duration_loss, label='Duration Loss')
+    plt.plot(epochs, prior_loss, label='Prior Loss')
+    plt.plot(epochs, diffusion_loss, label='Diffusion Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.title('Training Loss Over Epochs')
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+
+if __name__ == "__main__":
+    #print(f"Using GPU: {torch.cuda.is_available()}")  # Check if GPU is available
+
+    #analyze_audio("originalITA.wav", "generatedITA.wav")
+    plot_train_log("train_log.txt")
