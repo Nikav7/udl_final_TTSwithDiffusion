@@ -13,7 +13,7 @@ from model.utils import fix_len_compatibility
 train_filelist_path = 'data/train.csv'
 valid_filelist_path = 'data/test.csv'
 test_filelist_path = 'data/test.csv'
-cmudict_path = 'speechBackbones/GradTTS/resources/cmu_dictionary'
+cmudict_path = 'speechBackbones/GradTTS/resources/ita_dictionary'
 
 add_blank = True
 n_feats = 80
@@ -46,7 +46,7 @@ pe_scale = 1000  # 1 for `grad-tts-old.pt` checkpoint
 # training parameters
 log_dir = 'logs/new_exp'
 test_size = 4
-n_epochs = 50#000
+n_epochs = 2000
 batch_size = 16
 learning_rate = 1e-4
 seed = 37

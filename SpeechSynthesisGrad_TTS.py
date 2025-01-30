@@ -25,11 +25,11 @@ from SpeechBackbones.GradTTS.hifigan.models import Generator as HiFiGAN
 # Paths to checkpoints
 # Define the base path for your project
 BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ''))
-GRAD_TTS_CKPT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/grad_50.pt")
+GRAD_TTS_CKPT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/grad_1500.pt")
 GRAD_TTS_CKPT_LIBRI = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/grad-tts-libri-tts.pt")
 HIFIGAN_CKPT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/hifigan.pt")
 HIFIGAN_CONFIG = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/hifigan-config.json")
-CMU_DICT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/resources/cmu_dictionary")
+CMU_DICT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/resources/ita_dictionary")
 N_SPKS = 1  # 247 for Libri-TTS model and 1 for single speaker (LJSpeech)
 
 # Initialize Grad-TTS model
@@ -95,9 +95,9 @@ def text_to_speech(text = "Random text wow ok."):
     x, x_lengths = preprocess_text(text)
 
     t = dt.datetime.now()
-    y_enc, y_dec, attn = generator.forward(x, x_lengths, n_timesteps=50, temperature=1.3,
+    y_enc, y_dec, attn = generator.forward(x, x_lengths, n_timesteps=100, temperature=1.3,
                                        stoc=False, spk=None if N_SPKS==1 else torch.LongTensor([15]).cuda(),
-                                       length_scale=0.91)
+                                       length_scale=1.05)
     t = (dt.datetime.now() - t).total_seconds()
     print(f'Grad-TTS RTF: {t * 22050 / (y_dec.shape[-1] * 256)}')
 
@@ -110,10 +110,9 @@ def text_to_speech(text = "Random text wow ok."):
 if __name__ == "__main__":
     print(f"Using GPU: {torch.cuda.is_available()}")  # Check if GPU is available
 
-    text = "Here are the match lineups for the Colombia Haiti match."
-
-    #"questa è la voce che risulta dal finetuning di GradTTS con la voce di Alessandro Barbero, che ne pensi?"
-    
+    #text = "questa è la voce che risulta dal finetuning di GradTTS con la voce di Alessandro Barbero, che ne pensi?
+    text = "Cara Francesca, come stai? Ti scrivo questa lettera per dirti che, settimana prossima verrò a trovarti! La scuola è finita e ho superato gli esami con ottimi voti! L'estate è finalmente arrivata e non vedo l'ora di poter trascorrere delle giornate in spiaggia insieme a te, Lucia e Stefano. Penso spesso a tutte le cose che potremmo fare: andare allo zoo, fare shopping, mangiare gelati, fare lunghe passeggiate e, ovviamente, andare al mare! In realtà ti scrivo per chiederti una cosa: posso portare con me Billy? E' il mio gatto ed è molto dolce. Ti piacerà sicuramente! Domani vado a Roma per una gita. Sono molto emozionata! Ho sempre voluto vedere il Colosseo, Piazza San Pietro.  Mi piacerebbe tu fossi qui con me! Ora vado ad aiutare la mamma con la cena. "
+    #text = "Recently, denoising diffusion probabilistic models and generative score matching have shown high potential in modelling complex data distributions while stochastic calculus has provided a unified point of view on these techniques allowing for flexible inference schemes. In this paper we introduce Grad-TTS, a novel text-to-speech model with score-based decoder producing mel-spectrograms by gradually transforming noise predicted by encoder and aligned with text input by means of Monotonic Alignment Search. The framework of stochastic differential equations helps us to generalize conventional diffusion probabilistic models to the case of reconstructing data from noise with different parameters and allows to make this reconstruction flexible by explicitly controlling trade-off between sound quality and inference speed. Subjective human evaluation shows that Grad-TTS is competitive with state-of-the-art text-to-speech approaches in terms of Mean Opinion Score."
     #"Here are the match lineups for the Colombia Haiti match."
     audio = text_to_speech(text)
     #print(f"Audio saved to output.wav")
