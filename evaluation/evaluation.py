@@ -41,10 +41,10 @@ def snr_scf(signal, sr):
     #total power
     total_power = np.sum(psd)
     
-    #noise + distortion power
+    #noise
     noise_power = total_power - fundamental_power
     
-    #SINAD
+    #snr
     snr = 10 * np.log10(fundamental_power / noise_power)
     #Spectral Crest Factor (SCF), aka the Peak-to-Average Power Ratio (PAPR).
     #measures how dominant the peak power (fundamental frequency) is compared to the average power of the entire spectrum.
@@ -68,7 +68,10 @@ def get_frequency_stats(signal, sr):
     min_freq = frequencies[np.where(fft_spectrum > 0)[0][0]]
     max_freq = frequencies[np.where(fft_spectrum > 0)[0][-1]]
     mean_freq = np.average(frequencies, weights=fft_spectrum)
-    return min_freq, max_freq, mean_freq
+
+    variance = np.average((frequencies - mean_freq) ** 2, weights=fft_spectrum)
+    std_freq = np.sqrt(variance)
+    return min_freq, max_freq, mean_freq, std_freq
 
 def compute_phase(signal):
     return np.angle(scipy.fftpack.fft(signal))
@@ -97,8 +100,8 @@ def analyze_audio(original_file, generated_file):
     original, sr = librosa.load(original_file, sr=None)
     generated, _ = librosa.load(generated_file, sr=None)
     
-    min_freq_orig, max_freq_orig, mean_freq_orig = get_frequency_stats(original, sr)
-    min_freq_gen, max_freq_gen, mean_freq_gen = get_frequency_stats(generated, sr)
+    min_freq_orig, max_freq_orig, mean_freq_orig, std_freq_orig = get_frequency_stats(original, sr)
+    min_freq_gen, max_freq_gen, mean_freq_gen, std_freq_gen = get_frequency_stats(generated, sr)
     
     snr_fftor = snr_fft(original, sr)
     snr_original, scf_or = snr_scf(original, sr)
@@ -106,7 +109,9 @@ def analyze_audio(original_file, generated_file):
     snr_generated, scf_gen = snr_scf(generated, sr)
     
     phase_original = compute_phase(original)
+    #print(phase_original)
     phase_generated = compute_phase(generated)
+    #print(phase_generated)
     #phase_difference = phase_original - phase_generated
 
     
@@ -115,7 +120,9 @@ def analyze_audio(original_file, generated_file):
     print(f"Original SCF: {scf_or:.2f}, Generated SCF: {scf_gen:.2f}")
     print(f"Original Min Frequency: {min_freq_orig:.2f} Hz, Generated Min Frequency: {min_freq_gen:.2f} Hz")
     print(f"Original Max Frequency: {max_freq_orig:.2f} Hz, Generated Max Frequency: {max_freq_gen:.2f} Hz")
-    print(f"Original Mean Frequency: {mean_freq_orig:.2f} Hz, Generated Mean Frequency: {mean_freq_gen:.2f} Hz")
+    #print(f"Original Mean Frequency: {mean_freq_orig:.2f} Hz, Generated Mean Frequency: {mean_freq_gen:.2f} Hz")
+    print(f"Original Mean Frequency: {mean_freq_orig:.2f} ± {std_freq_orig:.2f} Hz")
+    print(f"Generated Mean Frequency: {mean_freq_gen:.2f} ± {std_freq_gen:.2f} Hz")
     #print(f"Original Phase: {phase_original:.2f} radians, Generated Phase: {phase_generated:.2f} radians")
     #print(f"Phase Difference: {phase_difference:.2f} radians")
 
@@ -169,3 +176,4 @@ if __name__ == "__main__":
     analyze_audio(or_path, gen_path)
     pesqs(or_path, gen_path)
     #plot_train_log("evaluation/train_log.txt")
+    
