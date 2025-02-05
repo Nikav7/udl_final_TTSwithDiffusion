@@ -6,18 +6,53 @@ import scipy.fftpack
 import matplotlib.pyplot as plt
 import soundfile as sf
 import re
+from scipy.io import wavfile
+from pesq import pesq
 
-def calculate_snr(signal):
-    signal_power = np.mean(signal ** 2)
-    noise_power = np.mean((signal - np.mean(signal)) ** 2)
-    snr = 10 * np.log10(signal_power / noise_power)
+def snr_fft(signal, sr):
+    N = len(signal)
+    X = np.fft.fft(signal)
+    freqs = np.fft.fftfreq(N, d=1/sr)
+
+    #power spectrum (magnitude squared of FFT)
+    power_spectrum = np.abs(X[:N//2])**2
+    freqs = freqs[:N//2]  #positive frequencies
+
+    #fundamental frequency
+    fundamental_idx = np.argmax(power_spectrum)
+    fundamental_power = power_spectrum[fundamental_idx]
+
+    #total noise power (excluding fundamental)
+    noise_power = np.sum(power_spectrum) - fundamental_power
+
+    #snr
+    snr = 10 * np.log10(fundamental_power / noise_power)
+
     return snr
 
-def calculate_sdr(signal):
-    distortion_power = np.mean((signal - np.mean(signal)) ** 2)
-    signal_power = np.mean(signal ** 2)
-    sdr = 10 * np.log10(signal_power / distortion_power)
-    return sdr
+def snr_scf(signal, sr):
+    #more accurate power estimation with power spectral density (PSD) instead of manual fft
+    freqs, psd = scipy.signal.periodogram(signal, sr, scaling='density')
+    
+    #fundamental frequency (strongest peak)
+    fundamental_idx = np.argmax(psd)
+    fundamental_power = psd[fundamental_idx]
+
+    #total power
+    total_power = np.sum(psd)
+    
+    #noise + distortion power
+    noise_power = total_power - fundamental_power
+    
+    #SINAD
+    snr = 10 * np.log10(fundamental_power / noise_power)
+    #Spectral Crest Factor (SCF), aka the Peak-to-Average Power Ratio (PAPR).
+    #measures how dominant the peak power (fundamental frequency) is compared to the average power of the entire spectrum.
+    #A high value indicates a signal with a strong fundamental component (e.g., a pure sine wave).
+    #A low value suggests a more uniform power distribution, indicating more noise or a spread spectrum.
+    scf = np.max(psd) / np.mean(psd)
+    
+    return snr, scf
 
 def compute_spectrogram(signal, sr):
     f, t, Sxx = scipy.signal.spectrogram(signal, sr)
@@ -65,24 +100,40 @@ def analyze_audio(original_file, generated_file):
     min_freq_orig, max_freq_orig, mean_freq_orig = get_frequency_stats(original, sr)
     min_freq_gen, max_freq_gen, mean_freq_gen = get_frequency_stats(generated, sr)
     
-    snr_original = calculate_snr(original)
-    sdr_original = calculate_sdr(original)
-    snr_generated = calculate_snr(generated)
-    sdr_generated = calculate_sdr(generated)
+    snr_fftor = snr_fft(original, sr)
+    snr_original, scf_or = snr_scf(original, sr)
+    snr_fftgen = snr_fft(generated, sr)
+    snr_generated, scf_gen = snr_scf(generated, sr)
     
     phase_original = compute_phase(original)
     phase_generated = compute_phase(generated)
     #phase_difference = phase_original - phase_generated
+
     
-    print(f"Original SNR: {snr_original:.2f} dB, Generated SNR: {snr_generated:.2f} dB")
-    print(f"Original SDR: {sdr_original:.2f} dB, Generated SDR: {sdr_generated:.2f} dB")
+    #print(f"Original SNR (fft): {snr_fftor:.2f} dB, Generated SNR (fft): {snr_fftgen:.2f} dB")
+    print(f"Original SNR (psd): {snr_original:.2f} dB, Generated SNR (psd): {snr_generated:.2f} dB")
+    print(f"Original SCF: {scf_or:.2f}, Generated SCF: {scf_gen:.2f}")
     print(f"Original Min Frequency: {min_freq_orig:.2f} Hz, Generated Min Frequency: {min_freq_gen:.2f} Hz")
     print(f"Original Max Frequency: {max_freq_orig:.2f} Hz, Generated Max Frequency: {max_freq_gen:.2f} Hz")
     print(f"Original Mean Frequency: {mean_freq_orig:.2f} Hz, Generated Mean Frequency: {mean_freq_gen:.2f} Hz")
+    #print(f"Original Phase: {phase_original:.2f} radians, Generated Phase: {phase_generated:.2f} radians")
     #print(f"Phase Difference: {phase_difference:.2f} radians")
-    
+
     plot_waveform_and_spectrogram(original, generated, sr)
 
+def pesqs(original, generated):
+    rate, ref = wavfile.read(original)
+    rate, deg = wavfile.read(generated)
+
+    if rate != 16000:
+        ref = scipy.signal.resample(ref, 16000, t=None, axis=0, window=None, domain='time')
+        deg = scipy.signal.resample(deg, 16000, t=None, axis=0, window=None, domain='time')
+
+    ref = np.ravel(ref)
+    deg = np.ravel(deg)
+    wb_pesq = pesq(16000, ref, deg, 'wb')
+    nb_pesq = pesq(16000, ref, deg, 'nb')
+    print(f"Wide-band pesq: {wb_pesq:.2f}, Narrow-band pesq: {nb_pesq:.2f}")
 
 def plot_train_log(file_path):
     epochs = []
@@ -112,7 +163,9 @@ def plot_train_log(file_path):
 
 
 if __name__ == "__main__":
-    #print(f"Using GPU: {torch.cuda.is_available()}")  # Check if GPU is available
-
-    #analyze_audio("originalITA.wav", "generatedITA.wav")
-    plot_train_log("train_log.txt")
+    #print(f"Using GPU: {torch.cuda.is_available()}")
+    or_path = "udl_final/evaluation/originalITA.wav"
+    gen_path = "udl_final/evaluation/generatedITA.wav"
+    analyze_audio(or_path, gen_path)
+    pesqs(or_path, gen_path)
+    #plot_train_log("evaluation/train_log.txt")
