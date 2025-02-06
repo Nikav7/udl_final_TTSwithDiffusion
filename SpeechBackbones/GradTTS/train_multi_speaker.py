@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 import torch
 from torch.utils.data import DataLoader
-#from torch.utils.tensorboard import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 import params
 from model import GradTTS
