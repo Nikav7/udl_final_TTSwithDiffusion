@@ -9,3 +9,8 @@ data/multi_lj_barb/wavs/
 
 SpeechBackbones/DiffVC/checkpts/vc/vc_libritts_wodyn.pt
 SpeechBackbones/GradTTS/checkpts/grad_2000cmu.pt
+evaluation/WER_evaluation.py
+SpeechBackbones/GradTTS/checkpts/grad_1000ita.pt
+SpeechBackbones/GradTTS/checkpts/grad_500ita.pt
+SpeechBackbones/GradTTS/checkpts/grad_1400ita.pt
+SpeechBackbones/GradTTS/checkpts/grad_1500ita.pt
