@@ -14,3 +14,4 @@ SpeechBackbones/GradTTS/checkpts/grad_1000ita.pt
 SpeechBackbones/GradTTS/checkpts/grad_500ita.pt
 SpeechBackbones/GradTTS/checkpts/grad_1400ita.pt
 SpeechBackbones/GradTTS/checkpts/grad_1500ita.pt
+data/barbero_eng
