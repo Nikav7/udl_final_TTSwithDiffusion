@@ -29,3 +29,15 @@ SpeechBackbones/GradTTS/checkpts/multi/grad_200Fresh.pt
 SpeechBackbones/GradTTS/checkpts/multi/grad_300Fresh.pt
 SpeechBackbones/GradTTS/checkpts/multi/grad_400Fresh.pt
 SpeechBackbones/GradTTS/checkpts/multi/grad_500Fresh.pt
+data/multi_lj_barb/wavs/
+
+SpeechBackbones/DiffVC/checkpts/vc/vc_libritts_wodyn.pt
+SpeechBackbones/GradTTS/checkpts/grad_2000cmu.pt
+SpeechBackbones/GradTTS/checkpts/grad_1000ita.pt
+SpeechBackbones/GradTTS/checkpts/grad_500ita.pt
+SpeechBackbones/GradTTS/checkpts/grad_1400ita.pt
+SpeechBackbones/GradTTS/checkpts/grad_1500ita.pt
+data/barbero_eng
+SpeechBackbones/GradTTS/checkpts/grad_500BarberoENGcmu.pt
+SpeechBackbones/GradTTS/checkpts/grad_1000BarberoENGcmu.pt
+SpeechBackbones/GradTTS/checkpts/grad_1500BarberoENGcmu.pt
