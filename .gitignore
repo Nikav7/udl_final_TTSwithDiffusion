@@ -5,3 +5,6 @@ venv/
 # Ignore Python cache files
 __pycache__/
 *.py[cod]
+cmu_1epoch.wav
+original.wav
+it/
