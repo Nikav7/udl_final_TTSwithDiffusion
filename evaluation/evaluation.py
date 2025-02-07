@@ -1,4 +1,5 @@
 import numpy as np
+import parselmouth
 import librosa
 import librosa.display
 import scipy.signal
@@ -7,7 +8,17 @@ import matplotlib.pyplot as plt
 import soundfile as sf
 import re
 from scipy.io import wavfile
+from scipy.spatial.distance import euclidean
+from fastdtw import fastdtw 
 from pesq import pesq
+
+def compute_spectrogram(signal, sr):
+    f, t, Sxx = scipy.signal.spectrogram(signal, sr)
+    return f, t, Sxx
+
+def hz_to_mel(f):
+    """Convert frequency (Hz) to mel scale."""
+    return 2595 * np.log10(1 + f / 700)
 
 def snr_fft(signal, sr):
     N = len(signal)
@@ -16,7 +27,7 @@ def snr_fft(signal, sr):
 
     #power spectrum (magnitude squared of FFT)
     power_spectrum = np.abs(X[:N//2])**2
-    freqs = freqs[:N//2]  #positive frequencies
+    freqs = freqs[:N//2]  #positive freqs
 
     #fundamental frequency
     fundamental_idx = np.argmax(power_spectrum)
@@ -39,19 +50,16 @@ def snr_scf(signal, sr, n_harm=4):
     fundamental_power = psd[fundamental_idx]
     fundamental_freq = freqs[fundamental_idx]
     
-    # sum power of harmonics
+    #power of harmonics, set on 4 by default
     harmonic_power = psd[fundamental_idx]
-    for h in range(2, n_harm + 1):  # Consider up to num_harmonics
+    for h in range(2, n_harm + 1):
         harmonic_freq = h * fundamental_freq
-        harmonic_idx = np.argmin(np.abs(freqs - harmonic_freq))  # Find closest index
-        if harmonic_idx < len(psd):  # Ensure within bounds
+        harmonic_idx = np.argmin(np.abs(freqs - harmonic_freq)) 
+        if harmonic_idx < len(psd):
             harmonic_power += psd[harmonic_idx]
 
     #total power
     total_power = np.sum(psd)
-    
-    #noise
-    #noise_power = total_power - fundamental_power
 
     #noise considering harmonics
     noise_power = total_power - harmonic_power
@@ -65,10 +73,6 @@ def snr_scf(signal, sr, n_harm=4):
     scf = np.max(psd) / np.mean(psd)
     
     return snr, scf
-
-def compute_spectrogram(signal, sr):
-    f, t, Sxx = scipy.signal.spectrogram(signal, sr)
-    return f, t, Sxx
 
 def get_frequency_stats(signal, sr):
     fft_spectrum = np.abs(np.fft.rfft(signal))
@@ -118,31 +122,62 @@ def pitch_(audio):
     times = librosa.times_like(f0, sr=sr)
     return times, f0
 
-def pitch_comp(original, generated):
-    times_orig, f0_orig = pitch_(original)
-    times_gen, f0_gen = pitch_(generated)
+def pitch_rapt(audio, time_step=0.01, min_pitch=65, max_pitch=2093):
+    """Extracts pitch (F0) using RAPT (Praat)."""
+    sound = parselmouth.Sound(audio)
+    pitch = sound.to_pitch(time_step=time_step, pitch_floor=min_pitch, pitch_ceiling=max_pitch)
+    
+    times = pitch.xs()  # Time stamps
+    f0 = pitch.selected_array['frequency']  # F0 values
+    f0[f0 == 0] = np.nan  # Replace unvoiced parts with NaN
+    
+    return times, f0
+
+def pitch_comp(original, generated, method = "rapt"):
+
+    if method == "pyin":
+        extract_f0 = pitch_
+    elif method == "rapt":
+        extract_f0 = pitch_rapt
+
+    times_orig, f0_orig = extract_f0(original)
+    times_gen, f0_gen = extract_f0(generated)
 
     #both signals needs to have the same length for RMSE computation
-    min_len = min(len(f0_orig), len(f0_gen))
-    f0_orig = f0_orig[:min_len]
-    f0_gen = f0_gen[:min_len]
+    #we use Dynamic Time Warping (DTW) to align the sequences
+    #remove nans for proper DTW alignment
+    valid_idx_orig = ~np.isnan(f0_orig)
+    valid_idx_gen = ~np.isnan(f0_gen)
     
-    #RMSE (ignoring NaNs)
-    valid_idx = ~np.isnan(f0_orig) & ~np.isnan(f0_gen)
-    rmse = np.sqrt(np.mean((f0_orig[valid_idx] - f0_gen[valid_idx])**2))
+    times_orig, f0_orig = times_orig[valid_idx_orig], f0_orig[valid_idx_orig]
+    times_gen, f0_gen = times_gen[valid_idx_gen], f0_gen[valid_idx_gen]
 
-    print(f"RMSE: {rmse:.2f}")
+    # Apply DTW to align pitch sequences
+    distance, path = fastdtw(f0_orig, f0_gen, dist=euclidean)
     
-    #pitch contours
+    # Align F0 values using DTW mapping
+    f0_orig_aligned = np.array([f0_orig[i] for i, _ in path])
+    f0_gen_aligned = np.array([f0_gen[j] for _, j in path])
+
+    # Compute RMSE in Hz
+    rmse_hz = np.sqrt(np.mean((f0_orig_aligned - f0_gen_aligned) ** 2))
+
+    # Compute RMSE in the mel scale
+    mel_orig, mel_gen = hz_to_mel(f0_orig_aligned), hz_to_mel(f0_gen_aligned)
+    rmse_mel = np.sqrt(np.mean((mel_orig - mel_gen) ** 2))
+
+    # Plot the pitch contours
     plt.figure(figsize=(10, 4))
-    plt.plot(times_orig[:min_len], f0_orig, label="Original Pitch", color="r")
-    plt.plot(times_gen[:min_len], f0_gen, label="Generated Pitch", color="b", linestyle="dashed")
+    plt.plot(times_orig, f0_orig, label="Original Pitch", color="r")
+    plt.plot(times_gen, f0_gen, label="Generated Pitch", color="b", linestyle="dashed")
     plt.xlabel("Time (s)")
     plt.ylabel("Frequency (Hz)")
-    plt.title(f"Pitch Comparison (RMSE: {rmse:.2f} Hz)")
+    plt.title(f"Pitch Comparison using {method.upper()} (DTW-RMSE: {rmse_hz:.2f} Hz, {rmse_mel:.2f} Mel)")
     plt.legend()
     plt.grid()
     plt.show()
+
+    return rmse_hz, rmse_mel
 
 
 def analyze_audio(original_file, generated_file):
@@ -164,7 +199,7 @@ def analyze_audio(original_file, generated_file):
     #phase_difference = phase_original - phase_generated
 
     
-    #print(f"Original SNR (fft): {snr_fftor:.2f} dB, Generated SNR (fft): {snr_fftgen:.2f} dB")
+    print(f"Original SNR (fft): {snr_fftor:.2f} dB, Generated SNR (fft): {snr_fftgen:.2f} dB")
     print(f"Original SNR (harm): {snr_original:.2f} dB, Generated SNR (harm): {snr_generated:.2f} dB")
     print(f"Original SCF: {scf_or:.2f}, Generated SCF: {scf_gen:.2f}")
     print(f"Original Min Frequency: {min_freq_orig:.2f} Hz, Generated Min Frequency: {min_freq_gen:.2f} Hz")
@@ -176,7 +211,7 @@ def analyze_audio(original_file, generated_file):
     #print(f"Phase Difference: {phase_difference:.2f} radians")
 
     plot_waveform_and_spectrogram(original, generated, sr)
-    pitch_comp(original_file, generated_file)
+    pitch_comp(original_file, generated_file, method="rapt")
 
 def pesqs(original, generated):
     rate, ref = wavfile.read(original)
@@ -224,7 +259,7 @@ def plot_train_log(file_path):
 if __name__ == "__main__":
     #print(f"Using GPU: {torch.cuda.is_available()}")
     or_path = "udl_final/evaluation/originalITA.wav"
-    gen_path = "udl_final/evaluation/generatedITA_ftAB2000cmu.wav"
+    gen_path = "udl_final/evaluation/generatedITA_ftAB1500cmu.wav"
     analyze_audio(or_path, gen_path)
     #pesqs(or_path, gen_path)
     #plot_train_log("udl_final/evaluation/train_log2000.txt")
