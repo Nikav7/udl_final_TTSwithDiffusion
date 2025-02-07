@@ -10,9 +10,9 @@ from model.utils import fix_len_compatibility
 
 
 # data parameters
-train_filelist_path = 'data/multi_lj_barb/trainTRIMMED.txt'
-valid_filelist_path = 'data/multi_lj_barb/testTRIMMED.txt'
-test_filelist_path = 'data/multi_lj_barb/testTRIMMED.txt'
+train_filelist_path = 'data/barbero_eng/train.csv'
+valid_filelist_path = 'data/barbero_eng/test.csv'
+test_filelist_path = 'data/barbero_eng/test.csv'
 cmudict_path = 'speechBackbones/GradTTS/resources/cmu_dictionary'
 
 add_blank = True

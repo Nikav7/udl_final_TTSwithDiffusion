@@ -29,7 +29,7 @@ def parse_filelist(filelist_path, split_char="|"):
     for item in filepaths_and_text:
         if not item[0].endswith('.wav'):
             item[0] += '.wav'
-        item[0] = os.path.join('C:/Users/rlina/Documents/Block2/Unsupervised Deep Learning/PracticalProjectSpeechSynthesis/data/multi_lj_barb/wavs/', item[0])
+        item[0] = os.path.join('C:/Users/rlina/Documents/Block2/Unsupervised Deep Learning/PracticalProjectSpeechSynthesis/data/barbero_eng/wavs/', item[0])
     
     return filepaths_and_text
 
