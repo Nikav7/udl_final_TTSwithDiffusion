@@ -118,7 +118,7 @@ def pitch_(audio):
     fmin = librosa.note_to_hz('C2')  # ~65 Hz
     fmax = librosa.note_to_hz('C7')  # ~2093 Hz
     f0, voiced_flag, voiced_probs = librosa.pyin(y, fmin=fmin, fmax=fmax, sr=sr)
-    # Create time axis for plotting
+    #times
     times = librosa.times_like(f0, sr=sr)
     return times, f0
 
@@ -127,9 +127,9 @@ def pitch_rapt(audio, time_step=0.01, min_pitch=65, max_pitch=2093):
     sound = parselmouth.Sound(audio)
     pitch = sound.to_pitch(time_step=time_step, pitch_floor=min_pitch, pitch_ceiling=max_pitch)
     
-    times = pitch.xs()  # Time stamps
-    f0 = pitch.selected_array['frequency']  # F0 values
-    f0[f0 == 0] = np.nan  # Replace unvoiced parts with NaN
+    times = pitch.xs()  #time stamps
+    f0 = pitch.selected_array['frequency']  #F0 values
+    f0[f0 == 0] = np.nan
     
     return times, f0
 
@@ -152,21 +152,21 @@ def pitch_comp(original, generated, method = "rapt"):
     times_orig, f0_orig = times_orig[valid_idx_orig], f0_orig[valid_idx_orig]
     times_gen, f0_gen = times_gen[valid_idx_gen], f0_gen[valid_idx_gen]
 
-    # Apply DTW to align pitch sequences
+    #DTW to align pitch sequences
     distance, path = fastdtw(f0_orig, f0_gen, dist=euclidean)
     
-    # Align F0 values using DTW mapping
+    #new F0 values based on DTW path
     f0_orig_aligned = np.array([f0_orig[i] for i, _ in path])
     f0_gen_aligned = np.array([f0_gen[j] for _, j in path])
 
-    # Compute RMSE in Hz
+    #RMSE in Hz
     rmse_hz = np.sqrt(np.mean((f0_orig_aligned - f0_gen_aligned) ** 2))
 
-    # Compute RMSE in the mel scale
+    #RMSE in the mel scale
     mel_orig, mel_gen = hz_to_mel(f0_orig_aligned), hz_to_mel(f0_gen_aligned)
     rmse_mel = np.sqrt(np.mean((mel_orig - mel_gen) ** 2))
 
-    # Plot the pitch contours
+    #Plot the pitch contours
     plt.figure(figsize=(10, 4))
     plt.plot(times_orig, f0_orig, label="Original Pitch", color="r")
     plt.plot(times_gen, f0_gen, label="Generated Pitch", color="b", linestyle="dashed")
@@ -178,7 +178,6 @@ def pitch_comp(original, generated, method = "rapt"):
     plt.show()
 
     return rmse_hz, rmse_mel
-
 
 def analyze_audio(original_file, generated_file):
     original, sr = librosa.load(original_file, sr=None)
@@ -192,12 +191,23 @@ def analyze_audio(original_file, generated_file):
     snr_fftgen = snr_fft(generated, sr)
     snr_generated, scf_gen = snr_scf(generated, sr)
     
-    phase_original = compute_phase(original)
-    #print(phase_original)
-    phase_generated = compute_phase(generated)
-    #print(phase_generated)
-    #phase_difference = phase_original - phase_generated
+    valid_idx_orig = ~np.isnan(original)
+    valid_idx_gen = ~np.isnan(generated)
 
+    original = original[valid_idx_orig]
+    generated = generated[valid_idx_gen]
+
+    #DTW alignment
+    #distance, path = fastdtw(original, generated, dist=euclidean)
+
+    #orig_aligned = np.array([original[i] for i, _ in path])
+    #gen_aligned = np.array([generated[j] for _, j in path])
+
+    #phase_original = compute_phase(orig_aligned)
+    #print(phase_original)
+    #phase_generated = compute_phase(gen_aligned)
+    #print(phase_generated)
+    #phase_difference = np.mean(phase_original - phase_generated)
     
     print(f"Original SNR (fft): {snr_fftor:.2f} dB, Generated SNR (fft): {snr_fftgen:.2f} dB")
     print(f"Original SNR (harm): {snr_original:.2f} dB, Generated SNR (harm): {snr_generated:.2f} dB")
@@ -207,7 +217,6 @@ def analyze_audio(original_file, generated_file):
     #print(f"Original Mean Frequency: {mean_freq_orig:.2f} Hz, Generated Mean Frequency: {mean_freq_gen:.2f} Hz")
     print(f"Original Mean Frequency: {mean_freq_orig:.2f} ± {std_freq_orig:.2f} Hz")
     print(f"Generated Mean Frequency: {mean_freq_gen:.2f} ± {std_freq_gen:.2f} Hz")
-    #print(f"Original Phase: {phase_original:.2f} radians, Generated Phase: {phase_generated:.2f} radians")
     #print(f"Phase Difference: {phase_difference:.2f} radians")
 
     plot_waveform_and_spectrogram(original, generated, sr)
