@@ -25,7 +25,7 @@ from SpeechBackbones.GradTTS.hifigan.models import Generator as HiFiGAN
 # Paths to checkpoints
 # Define the base path for your project
 BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ''))
-GRAD_TTS_CKPT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/grad-tts.pt")#grad_500Fresh.pt")
+GRAD_TTS_CKPT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/grad_1500cmu.pt")#grad_500Fresh.pt")
 GRAD_TTS_CKPT_LIBRI = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/grad-tts-libri-tts.pt")
 HIFIGAN_CKPT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/hifigan.pt")
 HIFIGAN_CONFIG = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/hifigan-config.json")
@@ -120,7 +120,7 @@ def text_to_speech(sentences, model_name, speaker_index=0):
 
 if __name__ == "__main__":
     speaker_index = 1
-    model_name = "GradTTSModelita"
+    model_name = "1500cmuModelita"
     sent1 = "La società dell'impero ottomano non conosce la nobiltà di nascita, è una società dove non esiste nemmeno il concetto di nobiltà, il pregiudizio per cui solo chi ha un grande nome e una famiglia prestigiosa alle spalle ha diritto ad occupare i posti di comando."
     sent2 = "L'Europa si va dividendo in regni su base geografica e in una certa misura anche nazionale."
     sent3 = "Tutti i leader dell’impero ottomano erano nati cristiani ed erano figli di povera gente."

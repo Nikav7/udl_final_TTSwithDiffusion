@@ -1,4 +1,13 @@
 Model|Language|Sentence|WER
+1500cmuModelIta|it|sentence1|0.2
+1500cmuModelIta|it|sentence2|0.25
+1500cmuModelIta|it|sentence3|0.2857142857142857
+1500cmuModelIta|it|sentence4|0.25806451612903225
+1500cmuModelIta|it|sentence5|0.2
+1500cmuModelIta|it|sentence6|0.3793103448275862
+1500cmuModelIta|it|sentence7|0.23728813559322035
+1500cmuModelIta|it|sentence8|0.7342657342657343
+1500cmuModelIta|it|Average|0.3180803770662324
 GradTTSModel|en|sentence1|0.02040816326530612
 GradTTSModel|en|sentence2|0.1111111111111111
 GradTTSModel|en|sentence3|0.0

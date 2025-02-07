@@ -13,7 +13,7 @@ from model.utils import fix_len_compatibility
 train_filelist_path = 'data/barbero_eng/train.csv'
 valid_filelist_path = 'data/barbero_eng/test.csv'
 test_filelist_path = 'data/barbero_eng/test.csv'
-cmudict_path = 'speechBackbones/GradTTS/resources/cmu_dictionary'
+cmudict_path = 'speechBackbones/GradTTS/resources/ita_dictionary'
 
 add_blank = True
 n_feats = 80

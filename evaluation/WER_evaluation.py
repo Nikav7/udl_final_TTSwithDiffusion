@@ -8,6 +8,7 @@ import librosa
 
 # Set language and model for evaluation
 models = {
+    "1500cmuModelIta": "it",
     "GradTTSModel": "en",
     "500cmuModel": "en",
     "1000cmuModel": "en",
@@ -111,7 +112,7 @@ def plot_results():
                 data.setdefault(model, []).append(float(wer_score))
 
     # Create the plot
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(12, 6))
 
     color_map = {}  # Store colors assigned to each model
     for model, scores in data.items():
@@ -124,7 +125,7 @@ def plot_results():
 
     plt.xlabel("Sentence Number")
     plt.ylabel("WER Score")
-    plt.legend()
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0., prop={'size': 10})
     plt.title("Word Error Rate per Sentence with Average WER")
     plt.grid(True)
 
