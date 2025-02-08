@@ -10,13 +10,14 @@ import librosa
 models = {
     "1500cmuModelIta": "it",
     "GradTTSModel": "en",
-    "500cmuModel": "en",
-    "1000cmuModel": "en",
-    "1500cmuModel": "en",
-    "GradTTSModelita": "it",
-    "500itaModel": "it",
-    "1000itaModel": "it",
-    "1500itaModel": "it"
+    "2000BarberoPUREcmuItalian": "it"
+    # "500cmuModel": "en",
+    # "1000cmuModel": "en",
+    # "1500cmuModel": "en",
+    # "GradTTSModelita": "it",
+    # "500itaModel": "it",
+    # "1000itaModel": "it",
+    # "1500itaModel": "it"
 }
 # Load Whisper model for transcription
 model = whisper.load_model("medium")
