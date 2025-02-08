@@ -1,4 +1,5 @@
 import numpy as np
+import parselmouth
 import librosa
 import librosa.display
 import scipy.signal
@@ -7,7 +8,17 @@ import matplotlib.pyplot as plt
 import soundfile as sf
 import re
 from scipy.io import wavfile
+from scipy.spatial.distance import euclidean
+from fastdtw import fastdtw 
 from pesq import pesq
+
+def compute_spectrogram(signal, sr):
+    f, t, Sxx = scipy.signal.spectrogram(signal, sr)
+    return f, t, Sxx
+
+def hz_to_mel(f):
+    """Convert frequency (Hz) to mel scale."""
+    return 2595 * np.log10(1 + f / 700)
 
 def snr_fft(signal, sr):
     N = len(signal)
@@ -16,7 +27,7 @@ def snr_fft(signal, sr):
 
     #power spectrum (magnitude squared of FFT)
     power_spectrum = np.abs(X[:N//2])**2
-    freqs = freqs[:N//2]  #positive frequencies
+    freqs = freqs[:N//2]  #positive freqs
 
     #fundamental frequency
     fundamental_idx = np.argmax(power_spectrum)
@@ -30,19 +41,28 @@ def snr_fft(signal, sr):
 
     return snr
 
-def snr_scf(signal, sr):
+def snr_scf(signal, sr, n_harm=4):
     #more accurate power estimation with power spectral density (PSD) instead of manual fft
     freqs, psd = scipy.signal.periodogram(signal, sr, scaling='density')
     
     #fundamental frequency (strongest peak)
     fundamental_idx = np.argmax(psd)
     fundamental_power = psd[fundamental_idx]
+    fundamental_freq = freqs[fundamental_idx]
+    
+    #power of harmonics, set on 4 by default
+    harmonic_power = psd[fundamental_idx]
+    for h in range(2, n_harm + 1):
+        harmonic_freq = h * fundamental_freq
+        harmonic_idx = np.argmin(np.abs(freqs - harmonic_freq)) 
+        if harmonic_idx < len(psd):
+            harmonic_power += psd[harmonic_idx]
 
     #total power
     total_power = np.sum(psd)
-    
-    #noise
-    noise_power = total_power - fundamental_power
+
+    #noise considering harmonics
+    noise_power = total_power - harmonic_power
     
     #snr
     snr = 10 * np.log10(fundamental_power / noise_power)
@@ -53,10 +73,6 @@ def snr_scf(signal, sr):
     scf = np.max(psd) / np.mean(psd)
     
     return snr, scf
-
-def compute_spectrogram(signal, sr):
-    f, t, Sxx = scipy.signal.spectrogram(signal, sr)
-    return f, t, Sxx
 
 def get_frequency_stats(signal, sr):
     fft_spectrum = np.abs(np.fft.rfft(signal))
@@ -96,6 +112,73 @@ def plot_waveform_and_spectrogram(original, generated, sr):
     plt.tight_layout()
     plt.show()
 
+def pitch_(audio):
+    y, sr = librosa.load(audio, sr=None)
+    #fundamental frequency (f0) detection with pYIN
+    fmin = librosa.note_to_hz('C2')  # ~65 Hz
+    fmax = librosa.note_to_hz('C7')  # ~2093 Hz
+    f0, voiced_flag, voiced_probs = librosa.pyin(y, fmin=fmin, fmax=fmax, sr=sr)
+    #times
+    times = librosa.times_like(f0, sr=sr)
+    return times, f0
+
+def pitch_rapt(audio, time_step=0.01, min_pitch=65, max_pitch=2093):
+    """Extracts pitch (F0) using RAPT (Praat)."""
+    sound = parselmouth.Sound(audio)
+    pitch = sound.to_pitch(time_step=time_step, pitch_floor=min_pitch, pitch_ceiling=max_pitch)
+    
+    times = pitch.xs()  #time stamps
+    f0 = pitch.selected_array['frequency']  #F0 values
+    f0[f0 == 0] = np.nan
+    
+    return times, f0
+
+def pitch_comp(original, generated, method = "rapt"):
+
+    if method == "pyin":
+        extract_f0 = pitch_
+    elif method == "rapt":
+        extract_f0 = pitch_rapt
+
+    times_orig, f0_orig = extract_f0(original)
+    times_gen, f0_gen = extract_f0(generated)
+
+    #both signals needs to have the same length for RMSE computation
+    #we use Dynamic Time Warping (DTW) to align the sequences
+    #remove nans for proper DTW alignment
+    valid_idx_orig = ~np.isnan(f0_orig)
+    valid_idx_gen = ~np.isnan(f0_gen)
+    
+    times_orig, f0_orig = times_orig[valid_idx_orig], f0_orig[valid_idx_orig]
+    times_gen, f0_gen = times_gen[valid_idx_gen], f0_gen[valid_idx_gen]
+
+    #DTW to align pitch sequences
+    distance, path = fastdtw(f0_orig, f0_gen, dist=euclidean)
+    
+    #new F0 values based on DTW path
+    f0_orig_aligned = np.array([f0_orig[i] for i, _ in path])
+    f0_gen_aligned = np.array([f0_gen[j] for _, j in path])
+
+    #RMSE in Hz
+    rmse_hz = np.sqrt(np.mean((f0_orig_aligned - f0_gen_aligned) ** 2))
+
+    #RMSE in the mel scale
+    mel_orig, mel_gen = hz_to_mel(f0_orig_aligned), hz_to_mel(f0_gen_aligned)
+    rmse_mel = np.sqrt(np.mean((mel_orig - mel_gen) ** 2))
+
+    #Plot the pitch contours
+    plt.figure(figsize=(10, 4))
+    plt.plot(times_orig, f0_orig, label="Original Pitch", color="r")
+    plt.plot(times_gen, f0_gen, label="Generated Pitch", color="b", linestyle="dashed")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Frequency (Hz)")
+    plt.title(f"Pitch Comparison using {method.upper()} (DTW-RMSE: {rmse_hz:.2f} Hz, {rmse_mel:.2f} Mel)")
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+    return rmse_hz, rmse_mel
+
 def analyze_audio(original_file, generated_file):
     original, sr = librosa.load(original_file, sr=None)
     generated, _ = librosa.load(generated_file, sr=None)
@@ -108,25 +191,36 @@ def analyze_audio(original_file, generated_file):
     snr_fftgen = snr_fft(generated, sr)
     snr_generated, scf_gen = snr_scf(generated, sr)
     
-    phase_original = compute_phase(original)
-    #print(phase_original)
-    phase_generated = compute_phase(generated)
-    #print(phase_generated)
-    #phase_difference = phase_original - phase_generated
+    valid_idx_orig = ~np.isnan(original)
+    valid_idx_gen = ~np.isnan(generated)
 
+    original = original[valid_idx_orig]
+    generated = generated[valid_idx_gen]
+
+    #DTW alignment
+    #distance, path = fastdtw(original, generated, dist=euclidean)
+
+    #orig_aligned = np.array([original[i] for i, _ in path])
+    #gen_aligned = np.array([generated[j] for _, j in path])
+
+    #phase_original = compute_phase(orig_aligned)
+    #print(phase_original)
+    #phase_generated = compute_phase(gen_aligned)
+    #print(phase_generated)
+    #phase_difference = np.mean(phase_original - phase_generated)
     
-    #print(f"Original SNR (fft): {snr_fftor:.2f} dB, Generated SNR (fft): {snr_fftgen:.2f} dB")
-    print(f"Original SNR (psd): {snr_original:.2f} dB, Generated SNR (psd): {snr_generated:.2f} dB")
+    print(f"Original SNR (fft): {snr_fftor:.2f} dB, Generated SNR (fft): {snr_fftgen:.2f} dB")
+    print(f"Original SNR (harm): {snr_original:.2f} dB, Generated SNR (harm): {snr_generated:.2f} dB")
     print(f"Original SCF: {scf_or:.2f}, Generated SCF: {scf_gen:.2f}")
     print(f"Original Min Frequency: {min_freq_orig:.2f} Hz, Generated Min Frequency: {min_freq_gen:.2f} Hz")
     print(f"Original Max Frequency: {max_freq_orig:.2f} Hz, Generated Max Frequency: {max_freq_gen:.2f} Hz")
     #print(f"Original Mean Frequency: {mean_freq_orig:.2f} Hz, Generated Mean Frequency: {mean_freq_gen:.2f} Hz")
     print(f"Original Mean Frequency: {mean_freq_orig:.2f} ± {std_freq_orig:.2f} Hz")
     print(f"Generated Mean Frequency: {mean_freq_gen:.2f} ± {std_freq_gen:.2f} Hz")
-    #print(f"Original Phase: {phase_original:.2f} radians, Generated Phase: {phase_generated:.2f} radians")
     #print(f"Phase Difference: {phase_difference:.2f} radians")
 
     plot_waveform_and_spectrogram(original, generated, sr)
+    pitch_comp(original_file, generated_file, method="rapt")
 
 def pesqs(original, generated):
     rate, ref = wavfile.read(original)
@@ -140,6 +234,7 @@ def pesqs(original, generated):
     deg = np.ravel(deg)
     wb_pesq = pesq(16000, ref, deg, 'wb')
     nb_pesq = pesq(16000, ref, deg, 'nb')
+
     print(f"Wide-band pesq: {wb_pesq:.2f}, Narrow-band pesq: {nb_pesq:.2f}")
 
 def plot_train_log(file_path):
@@ -157,23 +252,23 @@ def plot_train_log(file_path):
                 prior_loss.append(float(match.group(3)))
                 diffusion_loss.append(float(match.group(4)))
     
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(10, 10))
     plt.plot(epochs, duration_loss, label='Duration Loss')
     plt.plot(epochs, prior_loss, label='Prior Loss')
     plt.plot(epochs, diffusion_loss, label='Diffusion Loss')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
-    plt.title('Training Loss Over Epochs')
+    plt.title('Training Losses Over Epochs')
     plt.legend()
     plt.grid()
     plt.show()
+    #plt.savefig("train_log2000.png")
 
 
 if __name__ == "__main__":
     #print(f"Using GPU: {torch.cuda.is_available()}")
     or_path = "udl_final/evaluation/originalITA.wav"
-    gen_path = "udl_final/evaluation/generatedITA.wav"
+    gen_path = "udl_final/evaluation/generatedITA_ftAB1500cmu.wav"
     analyze_audio(or_path, gen_path)
-    pesqs(or_path, gen_path)
-    #plot_train_log("evaluation/train_log.txt")
-    
+    #pesqs(or_path, gen_path)
+    #plot_train_log("udl_final/evaluation/train_log2000.txt")
