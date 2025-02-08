@@ -8,12 +8,12 @@ import librosa
 
 # Set language and model for evaluation
 models = {
-    "1500cmuModelIta": "it",
+    # "1500cmuModelIta": "it",
     "GradTTSModel": "en",
-    "2000BarberoPUREcmuItalian": "it"
-    # "500cmuModel": "en",
-    # "1000cmuModel": "en",
-    # "1500cmuModel": "en",
+    # "2000BarberoPUREcmuItalian": "it",
+    "500cmuModel": "en",
+    "1000cmuModel": "en",
+    "1500cmuModel": "en"
     # "GradTTSModelita": "it",
     # "500itaModel": "it",
     # "1000itaModel": "it",
