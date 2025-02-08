@@ -17,3 +17,8 @@ data/barbero_eng
 SpeechBackbones/GradTTS/checkpts/grad_500BarberoENGcmu.pt
 SpeechBackbones/GradTTS/checkpts/grad_1000BarberoENGcmu.pt
 SpeechBackbones/GradTTS/checkpts/grad_1500BarberoENGcmu.pt
+SpeechBackbones/GradTTS/checkpts/grad_100BarberoPUREcmu.pt
+SpeechBackbones/GradTTS/checkpts/grad_500BarberoPUREcmu.pt
+SpeechBackbones/GradTTS/checkpts/grad_1000BarberoPUREcmu.pt
+SpeechBackbones/GradTTS/checkpts/grad_1500BarberoPUREcmu.pt
+SpeechBackbones/GradTTS/checkpts/grad_2000BarberoPUREcmu.pt
