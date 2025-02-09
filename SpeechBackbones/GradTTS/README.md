@@ -37,4 +37,4 @@ cd model/monotonic_align; python setup.py build_ext --inplace; cd ../..
 
 * HiFi-GAN model is used as vocoder, official github repository: [link](https://github.com/jik876/hifi-gan).
 * Monotonic Alignment Search algorithm is used for unsupervised duration modelling, official github repository: [link](https://github.com/jaywalnut310/glow-tts).
-* Phonemization utilizes CMUdict and a custom Italian dictionary, CMU repository: [link](https://github.com/cmusphinx/cmudict) Italian dict: [link](https://github.com/cmusphinx/cmudict](https://github.com/Kyubyong/pron_dictionaries)
+* Phonemization utilizes CMUdict and a custom Italian dictionary, CMU repository: [link](https://github.com/cmusphinx/cmudict) Italian dict: [link](https://github.com/cmusphinx/cmudict](https://github.com/Kyubyong/pron_dictionaries )
