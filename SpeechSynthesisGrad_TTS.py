@@ -1,7 +1,5 @@
 import sys
 import torch
-#print(torch.cuda.is_available())
-#print(torch.cuda.get_device_name(0))
 import librosa
 import soundfile as sf
 import IPython.display as ipd
@@ -10,7 +8,6 @@ import scipy.io.wavfile as wavfile
 import json
 import datetime as dt
 import os
-# Add the directory containing the 'model' module to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'SpeechBackbones/GradTTS')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'SpeechBackbones/GradTTS/hifigan')))
 # changed original path names to do this. (removed - from names)
@@ -84,7 +81,6 @@ def plot_results(y_enc, y_dec, attn, filename='results_plot.png'):
 def reconstruct_waveform(y_dec, hifigan, filename):
     with torch.no_grad():
         audio = hifigan.forward(y_dec).cpu().squeeze().clamp(-1, 1)
-    #ipd.display(ipd.Audio(audio, rate=22050))
     audio_data = audio.numpy()
     sample_rate = 22050
     wavfile.write(filename, sample_rate, audio_data)
@@ -147,4 +143,3 @@ if __name__ == "__main__":
 
     # text = "Under these circumstances, unnatural as they are, with proper management, the bean will thrust forth its radicle and its plumule."
     audio = text_to_speech(sentences, model_name, speaker_index)
-    #print(f"Audio saved to generated_audio.wav")
