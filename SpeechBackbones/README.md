@@ -1,6 +1,6 @@
 # Speech-Backbones
 
-This is the main repository of open-sourced speech technology by Huawei Noah's Ark Lab.
+From the repository of open-sourced speech technology by Huawei Noah's Ark Lab. https://github.com/huawei-noah/Speech-Backbones/tree/main
 
 ## Grad-TTS
 
