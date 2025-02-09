@@ -38,14 +38,6 @@ SpeechBackbones/GradTTS/checkpts/grad_500ita.pt
 SpeechBackbones/GradTTS/checkpts/grad_1400ita.pt
 SpeechBackbones/GradTTS/checkpts/grad_1500ita.pt
 data/barbero_eng
-SpeechBackbones/GradTTS/checkpts/grad_500BarberoENGcmu.pt
-SpeechBackbones/GradTTS/checkpts/grad_1000BarberoENGcmu.pt
-SpeechBackbones/GradTTS/checkpts/grad_1500BarberoENGcmu.pt
-SpeechBackbones/GradTTS/checkpts/grad_100BarberoPUREcmu.pt
-SpeechBackbones/GradTTS/checkpts/grad_500BarberoPUREcmu.pt
-SpeechBackbones/GradTTS/checkpts/grad_1000BarberoPUREcmu.pt
-SpeechBackbones/GradTTS/checkpts/grad_1500BarberoPUREcmu.pt
-SpeechBackbones/GradTTS/checkpts/grad_2000BarberoPUREcmu.pt
 SpeechBackbones/GradTTS/checkpts/BarberoPUREcmu/grad_100.pt
 SpeechBackbones/GradTTS/checkpts/BarberoPUREcmu/grad_200.pt
 SpeechBackbones/GradTTS/checkpts/BarberoPUREcmu/grad_300.pt
