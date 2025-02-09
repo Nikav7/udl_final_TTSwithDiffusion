@@ -268,8 +268,8 @@ def plot_train_log(file_path):
 
 if __name__ == "__main__":
     #print(f"Using GPU: {torch.cuda.is_available()}")
-    or_path = "udl_final/evaluation/originalITA.wav"
-    gen_path = "udl_final/evaluation/generatedITA_scratchAB2000cmu.wav"
+    or_path = "udl_final/evaluation/wavs_acousticEval/originalITA.wav"
+    gen_path = "udl_final/evaluation/wavs_acousticEval/generatedITA_scratchAB2000cmu.wav"
     analyze_audio(or_path, gen_path)
     pesqs(or_path, gen_path)
     #plot_train_log("udl_final/evaluation/train_log2000.txt")
