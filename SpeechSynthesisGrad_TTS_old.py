@@ -27,11 +27,11 @@ from SpeechBackbones.GradTTS.hifigan.models import Generator as HiFiGAN
 # Paths to checkpoints
 # Define the base path for the project
 BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ''))
-GRAD_TTS_CKPT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/grad-tts.pt")
+GRAD_TTS_CKPT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/BarberoPUREcmu/grad_2000.pt")
 GRAD_TTS_CKPT_LIBRI = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/grad-tts-libri-tts.pt")
-HIFIGAN_CKPT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/g_02500000.pt")
-HIFIGAN_CONFIG = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/g_02500000-config.json")
-CMU_DICT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/resources/cmu_dictionary")
+HIFIGAN_CKPT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/hifigan.pt")
+HIFIGAN_CONFIG = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/checkpts/hifigan-config.json")
+CMU_DICT = os.path.join(BASE_PATH, "SpeechBackbones/GradTTS/resources/ita_dictionary")
 N_SPKS = 1  # 2 for multi_AB_LJ, 247 for Libri-TTS model and 1 for single speaker
 
 # Initialize Grad-TTS model
@@ -136,10 +136,10 @@ if __name__ == "__main__":
 
     # REAL AUDIOS
     # ita from AB dataset
-    #text = "Per gli ordini religiosi del medioevo la riconoscibilità è un elemento fondamentale del successo, perché sono in concorrenza fra loro."
-
+    text = "Per gli ordini religiosi del medioevo la riconoscibilità è un elemento fondamentale del successo, perché sono in concorrenza fra loro."
+    #gio = "Hello Giovanni, spero vada bene in Vaticano! ti porto i saluti di Veronica. A presto!"
     # eng from LJSpeech dataset
-    text = "Under these circumstances, unnatural as they are, with proper management, the bean will thrust forth its radicle and its plumule."
+    #text = "Under these circumstances, unnatural as they are, with proper management, the bean will thrust forth its radicle and its plumule."
 
     # Long descriptive sentences
     #text = "Recentemente, i modelli probabilistici di diffusione e la qualità dell'output generato hanno mostrato un alto potenziale nella modellazione di distribuzioni di dati complesse, mentre il calcolo stocastico ha fornito un punto di vista unificato su queste tecniche, consentendo schemi di inferenza flessibili. Questo audio è generato con Grad-TiTieS, un nuovo modello di sintesi vocale con decodificatore che produce spettrogrammi mel trasformando gradualmente il rumore previsto dal codificatore e allineato con l'input di testo, mediante ricerca di allineamento monotonico. Il quadro delle equazioni differenziali stocastiche ci aiuta a generalizzare i modelli probabilistici di diffusione convenzionali per ricostruire dati dal rumore, con parametri diversi. Ciò consente di rendere flessibile questa ricostruzione controllando esplicitamente il compromesso tra qualità del suono e velocità di inferenza. La valutazione umana soggettiva mostra che Grad-TTS è competitivo con gli approcci di sintesi vocale all'avanguardia in termini di Mean Opinion Score."

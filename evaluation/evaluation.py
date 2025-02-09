@@ -166,13 +166,14 @@ def pitch_comp(original, generated, method = "rapt"):
     mel_orig, mel_gen = hz_to_mel(f0_orig_aligned), hz_to_mel(f0_gen_aligned)
     rmse_mel = np.sqrt(np.mean((mel_orig - mel_gen) ** 2))
 
+    x = np.linspace(0, len(f0_orig_aligned), len(f0_orig_aligned))
     #Plot the pitch contours
     plt.figure(figsize=(10, 4))
-    plt.plot(times_orig, f0_orig, label="Original Pitch", color="r")
-    plt.plot(times_gen, f0_gen, label="Generated Pitch", color="b", linestyle="dashed")
+    plt.plot(x, f0_orig_aligned, label="Original Pitch", color="r")
+    plt.plot(x, f0_gen_aligned, label="Generated Pitch", color="b", linestyle="dashed")
     plt.xlabel("Time (s)")
     plt.ylabel("Frequency (Hz)")
-    plt.title(f"Pitch Comparison using {method.upper()} (DTW-RMSE: {rmse_hz:.2f} Hz, {rmse_mel:.2f} Mel)")
+    plt.title(f"Pitch Comparison using {method.upper()} (RMSE: {rmse_hz:.2f} Hz, {rmse_mel:.2f} Mel)")
     plt.legend()
     plt.grid()
     plt.show()
@@ -268,7 +269,7 @@ def plot_train_log(file_path):
 if __name__ == "__main__":
     #print(f"Using GPU: {torch.cuda.is_available()}")
     or_path = "udl_final/evaluation/originalITA.wav"
-    gen_path = "udl_final/evaluation/generatedITA_ftAB1500cmu.wav"
+    gen_path = "udl_final/evaluation/generatedITA_scratchAB2000cmu.wav"
     analyze_audio(or_path, gen_path)
-    #pesqs(or_path, gen_path)
+    pesqs(or_path, gen_path)
     #plot_train_log("udl_final/evaluation/train_log2000.txt")
