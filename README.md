@@ -1,15 +1,14 @@
 # UDL Final Project a.y. 2024/2025
-# TTS with Diffussion
+## TTS with Diffussion
 <p align="center">
     <img src="resources/reverse-diffusion.gif" alt="drawing" width="500"/>
 </p>
 
+**Authors**: Veronica Valente and Linas Raicinskis 
 
-# Grad-TTS
+## Grad-TTS
 
 Official Repository: https://github.com/huawei-noah/Speech-Backbones/tree/main
-
-**Authors**: Veronica Valente and Linas Raicinskis 
 
 ## Installation
 
